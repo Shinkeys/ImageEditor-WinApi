@@ -17,19 +17,18 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			std::cout << Window::getInstance();
 			std::cout << '\n' << GetLastError();
 		}*/
-		/*CaptureImage(hWnd);*/
+		fillImageData(hWnd);
 		break;
 	case WM_PAINT:
 	{
-		CaptureImage(hWnd);
-		PAINTSTRUCT     ps;
+	    // use RECTANGLE later to fix image size
 		HDC hdc;
 		HDC hdcMem;
 		HGDIOBJ oldBitmap;
 		void* ppvBits = nullptr;
-		void* sourceData = BMPImg::getData();
+		void* sourceData = BMPImg::getImagePixelsData();
 
-		hdc = BeginPaint(hWnd, &ps);
+		hdc = GetDC(hWnd);
 
 		hdcMem = CreateCompatibleDC(hdc);
 
@@ -72,15 +71,12 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 
 
-		/*GetObject(hBitmap, sizeof(bmInfo), &bmInfo);*/
 		BitBlt(hdc, 0, 0, bmInfo.bmiHeader.biWidth, bmInfo.bmiHeader.biHeight, hdcMem, 0, 0, SRCCOPY);
 
-		SelectObject(hdcMem, oldBitmap);
+		// DELETING RESOURCES(VERY IMPORTANT TO NOT OVERFLOW)
+		DeleteObject(hBitmap);
 		DeleteDC(hdcMem);
-
-
-		EndPaint(hWnd, &ps);
-
+		DeleteObject(oldBitmap);
 
 		break;
 	} // to do
@@ -91,18 +87,15 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		DeleteObject(hBitmap);
 		PostQuitMessage(0);
 		return 0;
-
-		// processing image
-
 	}
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-void CaptureImage(HWND hWnd)
+void fillImageData(HWND hWnd)
 {
 	auto& bmpLoader = Window::getBmpLoader();
 	// load image
-	bmpLoader.read("data/tree.bmp");
+	bmpLoader.read("data/boy.bmp");
 	bmInfo.bmiHeader.biSize = bmpLoader.getInfoHeader().headerSize;
 	bmInfo.bmiHeader.biWidth = bmpLoader.getInfoHeader().width;
 	bmInfo.bmiHeader.biHeight = bmpLoader.getInfoHeader().height;

@@ -4,8 +4,7 @@
 // getters/setters
 const BMPHeaderV5& BMPImg::getHeader() { return header; }
 const BMPInfoHeaderV5& BMPImg::getInfoHeader(){ return infoHeader; }
-uint32_t* BMPImg::getData() { return imageData.data(); }
-
+uint64_t* BMPImg::getImagePixelsData() { return imagePixelsData.get(); }
 
 
 
@@ -39,8 +38,10 @@ void BMPImg::read(const char* path)
 	std::cout << "Signature: " << std::hex << header.signature << std::endl;
 
 	// allocating a space for pixels data
-	imageData.reserve(infoHeader.width * infoHeader.height);
+	imagePixelsData = std::make_unique<uint64_t[]>(infoHeader.width * infoHeader.height);
 
+
+	// debug for bmp loader
 	std::cout << "\nCurrent data in bmp loader: \n";
 	std::cout << "Width: " << infoHeader.width;
 	std::cout << "\nHeight: " << infoHeader.height;
@@ -50,7 +51,7 @@ void BMPImg::read(const char* path)
 
 	// moving to the pixel data in file
 	file.seekg(header.dataOffset, std::ios::beg);
-
+	size_t indexForImagePixelsData = 0;
 	const int padding = (4 - (infoHeader.width * 3) % 4) % 4;
 	for (int y = 0; y < infoHeader.height; ++y)
 	{
@@ -67,18 +68,19 @@ void BMPImg::read(const char* path)
 			pixelData |= 0xFF << 24; // 0 is white(alpha 255)
 			
 
-			imageData.push_back(pixelData); 
+			// pushing data to a smart pointer
+			imagePixelsData[indexForImagePixelsData++] = pixelData;
 
 		}
 		file.seekg(padding, std::ios::cur);
 	}
 	// debug colors
 	/*std::cout << "COLORS DATA\n";
-	for (const auto& x : imageData)
+	for (auto i = 0; i < indexForImagePixelsData; ++i)
 	{
-		std::cout << x << '\n';
+		std::cout << imagePixelsData[i] << '\n';
 	}*/
-	//
+	
 	file.close();
 }
 

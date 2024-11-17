@@ -65,29 +65,21 @@ struct BMPInfoHeaderV5
 class BMPImg
 {
 private:
-	static inline BMPHeaderV5 header;
-	static inline BMPInfoHeaderV5 infoHeader;
-	static inline std::vector<uint32_t> imageData;
+	BMPHeaderV5 header;
+	BMPInfoHeaderV5 infoHeader;
+	static inline std::unique_ptr<uint64_t[]> imagePixelsData{ nullptr };
+	
 public:
 	void read(const char* path);
 	void displayTexture();
 
-	// get set 
-	static const BMPHeaderV5& getHeader();
-	static const BMPInfoHeaderV5& getInfoHeader();
-	static uint32_t* getData();
-
+	// get/set 
+	const BMPHeaderV5& getHeader();
+	const BMPInfoHeaderV5& getInfoHeader();
+	static uint64_t* getImagePixelsData();
+	
 // constructors/destr
 public:
-	/*BMPImg()
-	{
-		uint32_t* imageData{ new uint32_t[]{} };
-	}
-	~BMPImg()
-	{
-		delete[] imageData;
-		imageData = nullptr;
-	}*/
 };
 
 
