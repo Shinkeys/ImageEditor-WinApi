@@ -2,8 +2,8 @@
 
 
 // getters/setters
-const BMPHeaderV5& BMPImg::getHeader() const { return header; }
-const BMPInfoHeaderV5& BMPImg::getInfoHeader() const { return infoHeader; }
+const BMPHeaderV5& BMPImg::getHeader() { return header; }
+const BMPInfoHeaderV5& BMPImg::getInfoHeader(){ return infoHeader; }
 uint32_t* BMPImg::getData() { return imageData.data(); }
 
 
@@ -39,7 +39,7 @@ void BMPImg::read(const char* path)
 	std::cout << "Signature: " << std::hex << header.signature << std::endl;
 
 	// allocating a space for pixels data
-	imageData.resize(infoHeader.width * infoHeader.height);
+	imageData.reserve(infoHeader.width * infoHeader.height);
 
 	std::cout << "\nCurrent data in bmp loader: \n";
 	std::cout << "Width: " << infoHeader.width;
@@ -70,10 +70,16 @@ void BMPImg::read(const char* path)
 			imageData.push_back(pixelData); 
 
 		}
-		/*file.seekg(padding, std::ios::cur);*/
+		file.seekg(padding, std::ios::cur);
 	}
+	// debug colors
+	/*std::cout << "COLORS DATA\n";
+	for (const auto& x : imageData)
+	{
+		std::cout << x << '\n';
+	}*/
+	//
 	file.close();
-
 }
 
 

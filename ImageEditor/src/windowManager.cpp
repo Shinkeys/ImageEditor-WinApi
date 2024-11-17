@@ -1,6 +1,5 @@
 #include "../headers/windowManager.h"
 
-
 BITMAPINFO  bmInfo;
 HBITMAP hBitmap = nullptr;
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -8,36 +7,61 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	switch (uMsg)
 	{
 	case WM_CREATE:
-		RECT rect;
-		GetWindowRect(hWnd, &rect);
-		hBitmap = (HBITMAP)LoadImage(Window::getInstance(), L"data\\second.bmp", IMAGE_BITMAP, rect.right - rect.left, rect.bottom - rect.top, LR_LOADFROMFILE);
+		/*RECT rectangle;
+		GetWindowRect(hWnd, &rectangle);
+		hBitmap = (HBITMAP)LoadImage(Window::getInstance(), L"data\\second.bmp", IMAGE_BITMAP, 
+			rectangle.right - rectangle.left, rectangle.bottom - rectangle.top, LR_LOADFROMFILE);
+
 		if (hBitmap == nullptr)
 		{
 			std::cout << Window::getInstance();
 			std::cout << '\n' << GetLastError();
-		}
+		}*/
+		/*CaptureImage(hWnd);*/
 		break;
 	case WM_PAINT:
 	{
-		/*CaptureImage(hWnd);*/
+		CaptureImage(hWnd);
 		PAINTSTRUCT     ps;
 		HDC hdc;
 		HDC hdcMem;
 		HGDIOBJ oldBitmap;
+		void* ppvBits = nullptr;
+		void* sourceData = BMPImg::getData();
 
 		hdc = BeginPaint(hWnd, &ps);
 
 		hdcMem = CreateCompatibleDC(hdc);
 
+		
 		if (!hdcMem)
 		{
+			DeleteDC(hdc);
 			MessageBox(NULL,
 				_T("Create compatible dc method failed!"),
 				_T("Win32 image editor"),
 				NULL);
 			throw std::runtime_error("Closing window!");
 		}
-		oldBitmap = SelectObject(hdcMem, hBitmap);
+
+		hBitmap = CreateDIBSection(hdc, &bmInfo, DIB_RGB_COLORS, &ppvBits, NULL, 0);
+		if (hBitmap == (HBITMAP)nullptr)
+		{
+			DeleteDC(hdc);
+			DeleteDC(hdcMem);
+			MessageBox(NULL,
+				_T("Create dib section method failed!"),
+				_T("Win32 image editor"),
+				NULL);
+			throw std::runtime_error("Closing window!");
+		}
+		else
+		{
+			memcpy(ppvBits, sourceData, bmInfo.bmiHeader.biSizeImage);
+		}
+
+
+		oldBitmap = (HBITMAP)SelectObject(hdcMem, hBitmap);
 		if (!oldBitmap)
 		{
 			MessageBox(NULL,
@@ -48,12 +72,12 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 
 
-		GetObject(hBitmap, sizeof(bmInfo), &bmInfo);
+		/*GetObject(hBitmap, sizeof(bmInfo), &bmInfo);*/
 		BitBlt(hdc, 0, 0, bmInfo.bmiHeader.biWidth, bmInfo.bmiHeader.biHeight, hdcMem, 0, 0, SRCCOPY);
 
 		SelectObject(hdcMem, oldBitmap);
 		DeleteDC(hdcMem);
-		
+
 
 		EndPaint(hWnd, &ps);
 
@@ -74,10 +98,11 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
 
-void Window::CaptureImage(HWND hWnd)
+void CaptureImage(HWND hWnd)
 {
+	auto& bmpLoader = Window::getBmpLoader();
 	// load image
-	bmpLoader.read("../VirusParser/data/sample1.bmp");
+	bmpLoader.read("data/tree.bmp");
 	bmInfo.bmiHeader.biSize = bmpLoader.getInfoHeader().headerSize;
 	bmInfo.bmiHeader.biWidth = bmpLoader.getInfoHeader().width;
 	bmInfo.bmiHeader.biHeight = bmpLoader.getInfoHeader().height;

@@ -18,13 +18,9 @@ private:
 	static inline BMPImg bmpLoader;
 	static inline HINSTANCE hInstance = (GetModuleHandle(nullptr));
 	HWND hWnd; // to remove static when would have multiple windows
-
-private:
-	void CaptureImage(HWND hWnd);
-
-
 public:
 	static const inline HINSTANCE& getInstance() { return hInstance; }
+	static inline BMPImg& getBmpLoader() { return bmpLoader; }
 
 public:
 	Window();
@@ -37,3 +33,4 @@ public:
 };
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
+void CaptureImage(HWND hWnd);
