@@ -4,6 +4,7 @@
 #include <iostream>
 #include <windows.h>
 #include <tchar.h>
+#include <functional>
 
 #include "../headers/bmpLoader.h"
 

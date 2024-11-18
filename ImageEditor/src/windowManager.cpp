@@ -2,13 +2,14 @@
 
 BITMAPINFO  bmInfo;
 HBITMAP hBitmap = nullptr;
+RECT rectangle;
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
 	case WM_CREATE:
-		/*RECT rectangle;
 		GetWindowRect(hWnd, &rectangle);
+		/*
 		hBitmap = (HBITMAP)LoadImage(Window::getInstance(), L"data\\second.bmp", IMAGE_BITMAP, 
 			rectangle.right - rectangle.left, rectangle.bottom - rectangle.top, LR_LOADFROMFILE);
 
@@ -25,7 +26,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		HDC hdc;
 		HDC hdcMem;
 		HGDIOBJ oldBitmap;
-		void* ppvBits = nullptr;
+		void* ppvBits;
 		void* sourceData = BMPImg::getImagePixelsData();
 
 		hdc = GetDC(hWnd);
@@ -43,7 +44,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			throw std::runtime_error("Closing window!");
 		}
 
-		hBitmap = CreateDIBSection(hdc, &bmInfo, DIB_RGB_COLORS, &ppvBits, NULL, 0);
+		hBitmap = CreateDIBSection(hdc, &bmInfo, DIB_RGB_COLORS, (void**)&ppvBits, NULL, 0);
 		if (hBitmap == (HBITMAP)nullptr)
 		{
 			DeleteDC(hdc);
@@ -56,10 +57,9 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 		}
 		else
 		{
-			memcpy(ppvBits, sourceData, bmInfo.bmiHeader.biSizeImage);
+		//	// to do later ---------------
+			memmove(ppvBits, sourceData, bmInfo.bmiHeader.biSizeImage);
 		}
-
-
 		oldBitmap = (HBITMAP)SelectObject(hdcMem, hBitmap);
 		if (!oldBitmap)
 		{
@@ -70,8 +70,10 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 			throw std::runtime_error("Closing window!");
 		}
 
-
-		BitBlt(hdc, 0, 0, bmInfo.bmiHeader.biWidth, bmInfo.bmiHeader.biHeight, hdcMem, 0, 0, SRCCOPY);
+		// scaling image to fit the size of window
+		StretchBlt(hdc, 0, 0, bmInfo.bmiHeader.biWidth, bmInfo.bmiHeader.biHeight, hdcMem, 0, 0,
+			rectangle.right - rectangle.left, rectangle.bottom - rectangle.top, SRCCOPY);
+		/*BitBlt(hdc, 0, 0, bmInfo.bmiHeader.biWidth, bmInfo.bmiHeader.biHeight, hdcMem, 0, 0, SRCCOPY);*/
 
 		// DELETING RESOURCES(VERY IMPORTANT TO NOT OVERFLOW)
 		DeleteObject(hBitmap);
@@ -102,8 +104,8 @@ void fillImageData(HWND hWnd)
 	bmInfo.bmiHeader.biPlanes = 1;
 	bmInfo.bmiHeader.biBitCount = bmpLoader.getInfoHeader().bitCount;
 	bmInfo.bmiHeader.biCompression = BI_RGB;
-	bmInfo.bmiHeader.biSizeImage = 
-		((bmInfo.bmiHeader.biWidth * bmInfo.bmiHeader.biBitCount + 31) / 32) * 4 * bmInfo.bmiHeader.biHeight;
+	bmInfo.bmiHeader.biSizeImage = ((((bmInfo.bmiHeader.biWidth *
+		bmInfo.bmiHeader.biBitCount) + 31) & ~31) >> 3) * bmInfo.bmiHeader.biHeight;
 	bmInfo.bmiHeader.biXPelsPerMeter = 0;
 	bmInfo.bmiHeader.biYPelsPerMeter = 0;
 	bmInfo.bmiHeader.biClrUsed = 0;
@@ -114,6 +116,7 @@ void fillImageData(HWND hWnd)
 	std::cout << "\nbiWidth: " << bmInfo.bmiHeader.biWidth;
 	std::cout << "\nbiHeight: " << bmInfo.bmiHeader.biHeight;
 	std::cout << "\nbiBitCount: " << bmInfo.bmiHeader.biBitCount << '\n';
+	std::cout << "\nbiSizeImage: " << bmInfo.bmiHeader.biSizeImage << '\n';
 }
 
 

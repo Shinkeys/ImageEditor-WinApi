@@ -71,12 +71,11 @@ private:
 	
 public:
 	void read(const char* path);
-	void displayTexture();
 
 	// get/set 
 	const BMPHeaderV5& getHeader();
 	const BMPInfoHeaderV5& getInfoHeader();
-	static uint64_t* getImagePixelsData();
+	static void* getImagePixelsData();
 	
 // constructors/destr
 public:
