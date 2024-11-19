@@ -4,44 +4,40 @@
 // getters/setters
 const BMPHeaderV5& BMPImg::getHeader() { return header; }
 const BMPInfoHeaderV5& BMPImg::getInfoHeader(){ return infoHeader; }
-void* BMPImg::getImagePixelsData() { return imagePixelsData.get(); }
+uint8_t* BMPImg::getImagePixelsData() { return imagePixelsData.get(); }
 
 
 
 
-void BMPImg::read(const char* path)
+size_t BMPImg::read(const char* path)
 {
 	std::ifstream file;
 	file.open(path, std::ios::in | std::ios::binary); // opening file in binary mode
 
 	if (!file)
 	{
-		std::cout << "Error! File not found!";
-		return;
+		throw std::runtime_error("Error!File is not .bmp!");
 	}
-
+		
 	// reading data of BMP header
 	file.read((reinterpret_cast<char*>(&header)), sizeof(header));
 	if (header.signature != 0x4D42)
 	{
-		std::cout << "Error! File is not .bmp!";
 		file.close();
-		return;
+		throw std::runtime_error("Error!File is not .bmp!");
 	}
 
 	// reading data of Information Header
 	file.read((reinterpret_cast<char*>(&infoHeader)), sizeof(infoHeader));
 	if (!file)
 	{
-		std::cerr << "Second read failed\n";
+		file.close();
+		throw std::runtime_error("Error! Could not read info header!");
 	}
 	std::cout << "Signature: " << std::hex << header.signature << std::endl;
 
 	// allocating a space for pixels data
-	imagePixelsData = std::make_unique<uint64_t[]>(28000000);
-	/*std::cout << ((((infoHeader.width *
-		infoHeader.bitCount) + 31) & ~31) >> 3)* infoHeader.height;*/
-
+	imagePixelsData = std::make_unique<uint8_t[]>(infoHeader.width * infoHeader.height * (infoHeader.bitCount / 8));
 
 	// debug for bmp loader
 	std::cout << "\nCurrent data in bmp loader: \n";
@@ -64,14 +60,17 @@ void BMPImg::read(const char* path)
 
 			file.read(reinterpret_cast<char*>(colors), 3);
 
-			pixelData |= colors[0]; // from 2 to 0 because data in bpm stored as BGR(not rgb)
-			pixelData |= colors[1] << 8;
-			pixelData |= colors[2] << 16;
+			//pixelData |= colors[0]; // from 2 to 0 because data in bpm stored as BGR(not rgb)
+			//pixelData |= colors[1] << 8;
+			//pixelData |= colors[2] << 16;
 			//pixelData |= 0xFF << 24; // 0 is white(alpha 255)
 			// to change later -------------------------------------
 			
 			// pushing data to a smart pointer
-			imagePixelsData[indexForImagePixelsData++] = pixelData;
+			/*imagePixelsData[indexForImagePixelsData++] = pixelData;*/
+			imagePixelsData[indexForImagePixelsData++] = colors[0];
+			imagePixelsData[indexForImagePixelsData++] = colors[1];
+			imagePixelsData[indexForImagePixelsData++] = colors[2];
 
 
 		}
@@ -83,9 +82,11 @@ void BMPImg::read(const char* path)
 	{
 		std::cout << imagePixelsData[i] << '\n';
 	}*/
-	std::cout << "ImagePixelsData Total count: " << indexForImagePixelsData << '\n';
+	std::cout << "\nImagePixelsData Total count: " << indexForImagePixelsData << '\n';
 	
 	file.close();
+
+	return indexForImagePixelsData;
 }
 
 

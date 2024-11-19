@@ -67,15 +67,16 @@ class BMPImg
 private:
 	BMPHeaderV5 header;
 	BMPInfoHeaderV5 infoHeader;
-	static inline std::unique_ptr<uint64_t[]> imagePixelsData{ nullptr };
+	static inline std::unique_ptr<uint8_t[]> imagePixelsData{ nullptr };
 	
 public:
-	void read(const char* path);
+	size_t read(const char* path);
 
 	// get/set 
 	const BMPHeaderV5& getHeader();
 	const BMPInfoHeaderV5& getInfoHeader();
-	static void* getImagePixelsData();
+	static uint8_t* getImagePixelsData();
+
 	
 // constructors/destr
 public:

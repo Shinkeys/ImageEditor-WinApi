@@ -1,17 +1,21 @@
 #include "../headers/windowManager.h"
 
+// useful objects //
 BITMAPINFO  bmInfo;
 HBITMAP hBitmap = nullptr;
 RECT rectangle;
+size_t pixelsInFileCount;
+
+///////////////////// processing window //////////////////////////////////////
 LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
 	switch (uMsg)
 	{
 	case WM_CREATE:
 		GetWindowRect(hWnd, &rectangle);
+		/*hBitmap = (HBITMAP)LoadImage(Window::getInstance(), L"data\\boy.bmp", IMAGE_BITMAP, 
+			rectangle.right - rectangle.left, rectangle.bottom - rectangle.top, LR_LOADFROMFILE);*/
 		/*
-		hBitmap = (HBITMAP)LoadImage(Window::getInstance(), L"data\\second.bmp", IMAGE_BITMAP, 
-			rectangle.right - rectangle.left, rectangle.bottom - rectangle.top, LR_LOADFROMFILE);
 
 		if (hBitmap == nullptr)
 		{
@@ -69,12 +73,11 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				NULL);
 			throw std::runtime_error("Closing window!");
 		}
-
 		// scaling image to fit the size of window
-		StretchBlt(hdc, 0, 0, bmInfo.bmiHeader.biWidth, bmInfo.bmiHeader.biHeight, hdcMem, 0, 0,
-			rectangle.right - rectangle.left, rectangle.bottom - rectangle.top, SRCCOPY);
+		StretchDIBits(hdc, 0, 0, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top,
+			0, 0, bmInfo.bmiHeader.biWidth, bmInfo.bmiHeader.biHeight, ppvBits, &bmInfo, DIB_RGB_COLORS, SRCCOPY);
+		// left it for non scale
 		/*BitBlt(hdc, 0, 0, bmInfo.bmiHeader.biWidth, bmInfo.bmiHeader.biHeight, hdcMem, 0, 0, SRCCOPY);*/
-
 		// DELETING RESOURCES(VERY IMPORTANT TO NOT OVERFLOW)
 		DeleteObject(hBitmap);
 		DeleteDC(hdcMem);
@@ -92,37 +95,6 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 	}
 	return DefWindowProc(hWnd, uMsg, wParam, lParam);
 }
-
-void fillImageData(HWND hWnd)
-{
-	auto& bmpLoader = Window::getBmpLoader();
-	// load image
-	bmpLoader.read("data/boy.bmp");
-	bmInfo.bmiHeader.biSize = bmpLoader.getInfoHeader().headerSize;
-	bmInfo.bmiHeader.biWidth = bmpLoader.getInfoHeader().width;
-	bmInfo.bmiHeader.biHeight = bmpLoader.getInfoHeader().height;
-	bmInfo.bmiHeader.biPlanes = 1;
-	bmInfo.bmiHeader.biBitCount = bmpLoader.getInfoHeader().bitCount;
-	bmInfo.bmiHeader.biCompression = BI_RGB;
-	bmInfo.bmiHeader.biSizeImage = ((((bmInfo.bmiHeader.biWidth *
-		bmInfo.bmiHeader.biBitCount) + 31) & ~31) >> 3) * bmInfo.bmiHeader.biHeight;
-	bmInfo.bmiHeader.biXPelsPerMeter = 0;
-	bmInfo.bmiHeader.biYPelsPerMeter = 0;
-	bmInfo.bmiHeader.biClrUsed = 0;
-	bmInfo.bmiHeader.biClrImportant = 0;
-
-	std::cout << "\nInfo in window manager:";
-	std::cout << "\nbiSize: " << bmInfo.bmiHeader.biSize;
-	std::cout << "\nbiWidth: " << bmInfo.bmiHeader.biWidth;
-	std::cout << "\nbiHeight: " << bmInfo.bmiHeader.biHeight;
-	std::cout << "\nbiBitCount: " << bmInfo.bmiHeader.biBitCount << '\n';
-	std::cout << "\nbiSizeImage: " << bmInfo.bmiHeader.biSizeImage << '\n';
-}
-
-
-
-
-
 
 Window::Window()
 {
@@ -178,10 +150,6 @@ Window::Window()
 	UpdateWindow(hWnd);
 }
 
-
-
-
-
 Window::~Window()
 {
 	const wchar_t CLASS_NAME[] = L"Image editor";
@@ -206,6 +174,34 @@ bool Window::ProcessMessages()
 	}
 
 	return true;
+}
+
+/////////////// own methods to fill data ///////////////////////
+void fillImageData(HWND hWnd)
+{
+	auto& bmpLoader = Window::getBmpLoader();
+	// load image
+	pixelsInFileCount = bmpLoader.read("data/boy.bmp");
+	bmInfo.bmiHeader.biSize = bmpLoader.getInfoHeader().headerSize;
+	bmInfo.bmiHeader.biWidth = bmpLoader.getInfoHeader().width;
+	bmInfo.bmiHeader.biHeight = bmpLoader.getInfoHeader().height;
+	bmInfo.bmiHeader.biPlanes = 1;
+	bmInfo.bmiHeader.biBitCount = bmpLoader.getInfoHeader().bitCount;
+	bmInfo.bmiHeader.biCompression = BI_RGB;
+	bmInfo.bmiHeader.biSizeImage = ((((bmInfo.bmiHeader.biWidth *
+		bmInfo.bmiHeader.biBitCount) + 31) & ~31) >> 3) * bmInfo.bmiHeader.biHeight;
+	bmInfo.bmiHeader.biXPelsPerMeter = 0;
+	bmInfo.bmiHeader.biYPelsPerMeter = 0;
+	bmInfo.bmiHeader.biClrUsed = 0;
+	bmInfo.bmiHeader.biClrImportant = 0;
+
+	std::cout << "\nInfo in window manager:";
+	std::cout << "\nPixels in file: " << pixelsInFileCount;
+	std::cout << "\nbiSize: " << bmInfo.bmiHeader.biSize;
+	std::cout << "\nbiWidth: " << bmInfo.bmiHeader.biWidth;
+	std::cout << "\nbiHeight: " << bmInfo.bmiHeader.biHeight;
+	std::cout << "\nbiBitCount: " << bmInfo.bmiHeader.biBitCount << '\n';
+	std::cout << "\nbiSizeImage: " << bmInfo.bmiHeader.biSizeImage << '\n';
 }
 
 
