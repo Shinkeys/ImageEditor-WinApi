@@ -73,11 +73,15 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 				NULL);
 			throw std::runtime_error("Closing window!");
 		}
+
+		// Setting anti-aliasing to merge adjacent pixels together(not drop as it does without)
+		SetStretchBltMode(hdc, HALFTONE);
 		// scaling image to fit the size of window
 		StretchDIBits(hdc, 0, 0, rectangle.right - rectangle.left, rectangle.bottom - rectangle.top,
 			0, 0, bmInfo.bmiHeader.biWidth, bmInfo.bmiHeader.biHeight, ppvBits, &bmInfo, DIB_RGB_COLORS, SRCCOPY);
 		// left it for non scale
-		/*BitBlt(hdc, 0, 0, bmInfo.bmiHeader.biWidth, bmInfo.bmiHeader.biHeight, hdcMem, 0, 0, SRCCOPY);*/
+	/*	BitBlt(hdc, 0, 0, bmInfo.bmiHeader.biWidth, bmInfo.bmiHeader.biHeight, hdcMem, 0, 0, SRCCOPY);*/
+
 		// DELETING RESOURCES(VERY IMPORTANT TO NOT OVERFLOW)
 		DeleteObject(hBitmap);
 		DeleteDC(hdcMem);
@@ -181,7 +185,7 @@ void fillImageData(HWND hWnd)
 {
 	auto& bmpLoader = Window::getBmpLoader();
 	// load image
-	pixelsInFileCount = bmpLoader.read("data/boy.bmp");
+	pixelsInFileCount = bmpLoader.read("data/second.bmp");
 	bmInfo.bmiHeader.biSize = bmpLoader.getInfoHeader().headerSize;
 	bmInfo.bmiHeader.biWidth = bmpLoader.getInfoHeader().width;
 	bmInfo.bmiHeader.biHeight = bmpLoader.getInfoHeader().height;

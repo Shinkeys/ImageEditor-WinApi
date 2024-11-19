@@ -50,15 +50,14 @@ size_t BMPImg::read(const char* path)
 	// moving to the pixel data in file
 	file.seekg(header.dataOffset, std::ios::beg);
 	size_t indexForImagePixelsData = 0;
-	const int padding = (4 - (infoHeader.width * 3) % 4) % 4;
 	for (int y = 0; y < infoHeader.height; ++y)
 	{
 		for (int x = 0; x < infoHeader.width; ++x)
 		{
-			uint8_t colors[3];
+			uint8_t colors[4];
 			uint32_t pixelData = 0;
 
-			file.read(reinterpret_cast<char*>(colors), 3);
+			file.read(reinterpret_cast<char*>(colors), 4);
 
 			//pixelData |= colors[0]; // from 2 to 0 because data in bpm stored as BGR(not rgb)
 			//pixelData |= colors[1] << 8;
@@ -67,14 +66,13 @@ size_t BMPImg::read(const char* path)
 			// to change later -------------------------------------
 			
 			// pushing data to a smart pointer
-			/*imagePixelsData[indexForImagePixelsData++] = pixelData;*/
 			imagePixelsData[indexForImagePixelsData++] = colors[0];
 			imagePixelsData[indexForImagePixelsData++] = colors[1];
 			imagePixelsData[indexForImagePixelsData++] = colors[2];
-
+			imagePixelsData[indexForImagePixelsData++] = colors[3];
+			
 
 		}
-		file.seekg(padding, std::ios::cur);
 	}
 	// debug colors
 	/*std::cout << "COLORS DATA\n";
